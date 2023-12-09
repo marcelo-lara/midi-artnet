@@ -4,88 +4,11 @@ import time
 import mido
 from stupidArtnet import StupidArtnet
 from threading import Timer
-
-# fixture setup
-fixture_setup = [
-    #Head EL150
-    [1,  0,  "X pos"],
-    [2,  0,  "X-Fine Pos"],
-    [3,  0,  "Y Pos"],
-    [4,  0,  "Y-Fine Pos"],
-    [5,  0,  "XY Speed"],
-    [6,  0,  "Dimmer"],
-    [7,  255,  "Shutter"],
-    [8,  0,  "Color Wheel"],
-    [9,  0,  "Gobo Wheel"],
-    [10, 0,  "AutoPlay"],
-    [11, 0,  "NC_XY_autorun"],
-    #[12, 0,  "Reset"],
-    
-    # Parcan Left
-    [16, 255, "Light"],
-    [17, 0, "Red"],
-    [18, 0, "Grreen"],
-    [19, 0, "Blue"],
-    [20, 0, "Strobe"],
-    [21, 0, "AutoColor"],
-
-    # Parcan Left
-    [22, 255, "Light"],
-    [23, 0, "Red"],
-    [24, 0, "Grreen"],
-    [25, 0, "Blue"],
-    [26, 0, "Strobe"],
-    [27, 0, "AutoColor"],
-]
-
-def artnet_blackout():
-    global _timer
-    if _timer != None:
-        _timer.cancel()
-        _timer = None
-        
-    global artnet
-    artnet.blackout()
-    artnet.start()
-
-def artnet_reset():
-    artnet_blackout()
-    global artnet
-    for dmx_ch in fixture_setup:
-        artnet.set_single_value(dmx_ch[0], dmx_ch[1])
-
-def _fade_handler(ch:int, value:int, interval_ms:int):
-    global _timer
-    if value < 0:
-        _timer.cancel()
-        _timer = None
-        return
-
-    #send value
-    global artnet
-    artnet.set_single_value(ch, value)
-
-    # set next timer    
-    _timer = Timer((interval_ms/1000), _fade_handler, args=[ch, value-1, interval_ms])
-    _timer.daemon = True
-    _timer.start()
-
-def artnet_fadeout(channel:int, interval_ms:int):
-    
-    #cancel previous fader
-    global _timer
-    if _timer != None:
-        _timer.cancel()
-        _timer = None
-
-    #trigger fadeout        
-    curr_value = artnet.buffer[channel-1]
-    _fade_handler(channel, curr_value, interval_ms)
-
+from fixtures import fixtures
 
 ## setup
 artnet = None
-_timer = None
+_timers = {}
 
 # open midi port
 port = "loopMIDI Port 0"
@@ -97,8 +20,61 @@ universe = 0 				  # see docs
 packet_size = 64			  # it is not necessary to send whole universe
 artnet = StupidArtnet(target_ip, universe, packet_size, 60, True, True)
 artnet.start()
+
+## ArtNet functions -----------------------------------------------------------------
+def clear_timers():
+    global _timers
+    for _, timer in _timers.items():
+        timer.cancel()
+    _timers = {}
+
+def artnet_blackout():
+    clear_timers()
+            
+    global artnet
+    artnet.blackout()
+    artnet.start()
+
+def artnet_reset():
+    print("reset")
+    artnet_blackout()
+    global artnet
+    for channel, fixture in fixtures.items():
+        artnet.set_single_value(channel, fixture.default_value)
+
+def _fade_handler(ch:int, value:int, interval_ms:int):
+    global _timers
+    if value < 0: 
+        _timers[ch].cancel()
+        del _timers[ch]
+        return
+
+    #send value
+    global artnet
+    artnet.set_single_value(ch, value)
+
+    # set next timer    
+    _timers[ch] = Timer((interval_ms/1000), _fade_handler, args=[ch, value-1, interval_ms])
+    _timers[ch].daemon = True
+    _timers[ch].start()
+
+def artnet_fadeout(channel:int, interval_ms:int):
+    
+    #cancel previous fader
+    global _timers
+    if channel in _timers:
+        _timers[channel].cancel()
+        del _timers[channel]
+
+    #trigger fadeout        
+    curr_value = artnet.buffer[channel-1]
+    _fade_handler(channel, curr_value, interval_ms)
+
+
+
 artnet_reset()
 
+## Midi functions -----------------------------------------------------------------
 def handle_msg(msg):
     if msg.type in ["note_off", "songpos", "clock", "control_change"]: return
     global artnet
@@ -132,7 +108,7 @@ def handle_msg(msg):
         case _:     
             print(msg)
 
-#wait for user break
+## Main -----------------------------------------------------------------
 try:
     with mido.open_input(port, callback=handle_msg) as midi_in:
         print("listening on " + port  + ". Press Control-C to exit.")
@@ -141,8 +117,7 @@ try:
 except KeyboardInterrupt:
     print('')
     
-print("closing..")
-    
 #close artnet output
+print("closing..")
 artnet_blackout()
 artnet.stop()
