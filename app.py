@@ -53,8 +53,12 @@ def _fade_handler(ch:int, value:int, interval_ms:int):
     global artnet
     artnet.set_single_value(ch, value)
 
+    # define speed
+    step = 1
+    if interval_ms < 2: step = 3
+
     # set next timer    
-    _timers[ch] = Timer((interval_ms/1000), _fade_handler, args=[ch, value-1, interval_ms])
+    _timers[ch] = Timer((interval_ms/1000), _fade_handler, args=[ch, value-step, interval_ms])
     _timers[ch].daemon = True
     _timers[ch].start()
 
@@ -99,7 +103,7 @@ def handle_msg(msg):
 
         case "stop":
             print("stop")
-            artnet_blackout()
+            artnet_reset()
 
         case "start":
             print("start")
