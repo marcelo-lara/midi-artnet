@@ -51,13 +51,13 @@ try:
         artnet.set_single_value(channel, value)
 
     # wait for keyboard interrupt
-    print("scene: " + scene_name)
+    print("scene: " + scene_name, flush=True)
     while True:
         time.sleep(0.1)
 except KeyboardInterrupt:
     print('')
     
 #close artnet output
-print("blacjout ..")
+print("blackout ..")
 artnet.blackout()
 artnet.stop()
