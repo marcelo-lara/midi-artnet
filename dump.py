@@ -1,4 +1,9 @@
+#!/usr/bin/env python
 import mido
+
+# list midi ports
+for port in mido.get_input_names():
+    print("- ", port)
 
 # open midi port
 port = "loopMIDI Port 1"
