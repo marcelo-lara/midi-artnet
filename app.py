@@ -9,9 +9,20 @@ from fixtures import fixtures
 ## setup
 artnet = None
 _timers = {}
+_found = False
+
+for port in mido.get_input_names():
+    print("- ", port)
+    if str(port).startswith("loopMIDI"):
+        _found = True
+        print("found port", flush=True)
+        break
+
+if not _found:
+    print("loopMIDI not found")
+    sys.exit()
 
 # open midi port
-port = "loopMIDI Port 0"
 midi_multiplier = 255/126
 
 # setup artnet
@@ -80,7 +91,7 @@ artnet_reset()
 
 ## Midi functions -----------------------------------------------------------------
 def handle_msg(msg):
-    if msg.type in ["note_off", "songpos", "clock", "control_change"]: return
+    if msg.type in ["note_off", "control_change"]: return
     global artnet
 
     match msg.type:
@@ -102,15 +113,18 @@ def handle_msg(msg):
             artnet.set_single_value(dmx_ch, dmx_val)
 
         case "stop":
-            print("stop")
+            print("stop", flush=True)
             artnet_reset()
 
         case "start":
-            print("start")
+            print("start", flush=True)
             artnet_reset()
 
+        case "clock":
+            print("clock:" + str(msg.pos), flush=True)
+
         case _:     
-            print(msg)
+            print(msg, flush=True)
 
 ## Main -----------------------------------------------------------------
 try:
