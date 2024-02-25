@@ -1,0 +1,11 @@
+name: midi-artnet
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - pip:
+    - stupidartnet
+    - mido
+    - python-rtmidi
