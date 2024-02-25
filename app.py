@@ -1,26 +1,15 @@
 #!/usr/bin/env python
-import sys
 import time
 import mido
 from stupidArtnet import StupidArtnet
 from threading import Timer
 from fixtures import fixtures
+from app_settings import getLoopbackInterface
 
 ## setup
 artnet = None
 _timers = {}
-_found = False
-
-for port in mido.get_input_names():
-    print("- ", port)
-    if str(port).startswith("loopMIDI"):
-        _found = True
-        print("found port", flush=True)
-        break
-
-if not _found:
-    print("loopMIDI not found")
-    sys.exit()
+_, port = getLoopbackInterface()
 
 # open midi port
 midi_multiplier = 255/126

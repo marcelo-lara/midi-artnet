@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 import mido
-
-# list midi ports
-for port in mido.get_input_names():
-    print("- ", port)
+from app_settings import getLoopbackInterface
 
 # open midi port
-port = "loopMIDI Port 1"
+_, port = getLoopbackInterface()
+
 midi_in = mido.open_input(port)
 try:
     for msg in midi_in:
