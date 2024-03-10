@@ -1,4 +1,4 @@
-MIDI_LOOPBACK = "Lo opBe"
+MIDI_LOOPBACK = "LoopBe"
 
 import sys
 import mido
