@@ -15,9 +15,5 @@ conda env update --file environment.yml --prune
 
 ## dockerized
 ```bash
-docker build -t midi-artnet .
-```
-then
-```bash
-docker run -p 9980:9980 midi-artnet
+docker-compose up --build
 ```
