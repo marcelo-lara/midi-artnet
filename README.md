@@ -11,3 +11,9 @@ conda env create --file environment.yml
 [or]
 conda env update --file environment.yml --prune
 ```
+
+
+## dockerized
+```bash
+docker-compose up --build
+```

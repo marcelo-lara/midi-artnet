@@ -1,0 +1,11 @@
+name: midiartnet
+services:
+    midi-artnet:
+      build: .
+      ports:
+          - 9980:9980
+      volumes:
+          - ./app:/code/app
+      image: midi-artnet
+      restart: always
+      network_mode: host
