@@ -11,3 +11,13 @@ conda env create --file environment.yml
 [or]
 conda env update --file environment.yml --prune
 ```
+
+
+## dockerized
+```bash
+docker build -t midi-artnet .
+```
+then
+```bash
+docker run -p 9980:9980 midi-artnet
+```
