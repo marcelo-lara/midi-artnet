@@ -1,20 +1,21 @@
 #!/usr/bin/env python
+import time
 import mido
 from app_settings import getLoopbackInterface
 
 # open midi port
 _, port = getLoopbackInterface()
 
-midi_in = mido.open_input(port)
+def handle_msg(msg):
+    print(msg)
+
 try:
-    for msg in midi_in:
-        if msg.is_cc:
-            if msg.type=="clock":
-                continue
-            print("ctrl:" + msg.type)
-        if msg.type == 'note_on':
-            print(msg)
+    with mido.open_input(port, callback=handle_msg) as midi_in:
+        print("listening on " + port  + ". Press Control-C to exit.")
+        while True:
+            time.sleep(0.1)
 except KeyboardInterrupt:
     print('')
-finally:
-    print("Exit.")
+    
+#close artnet output
+print("closing..")

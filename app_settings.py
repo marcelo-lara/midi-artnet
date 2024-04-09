@@ -1,4 +1,4 @@
-MIDI_LOOPBACK = "LoopBe"
+MIDI_LOOPBACK = "loopMIDI"
 
 import sys
 import mido
@@ -6,6 +6,7 @@ import mido
 def getLoopbackInterface(exit_if_not_found:bool=True) -> tuple[bool,str]:
     for port in mido.get_input_names():
         if str(port).startswith(MIDI_LOOPBACK):
+            print(f'found [{port}] port')
             return True, port
 
     if exit_if_not_found: 
