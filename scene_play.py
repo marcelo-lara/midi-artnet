@@ -2,7 +2,7 @@
 import time
 from stupidArtnet import StupidArtnet
 from threading import Timer
-from fixtures import fixtures
+from app.fixtures import fixtures
 
 ## setup
 artnet = None
